@@ -2,11 +2,11 @@ import React, { Component } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Actions } from 'react-native-router-flux';
 
-class Auth extends Component {
+class Share extends Component {
     render() {
         return (
             <View style={styles.container}>
-                <Text style={styles.text} onPress={Actions.share}>This is Auth!</Text>
+                <Text style={styles.text} onPress={Actions.auth}>This is Share!</Text>
             </View>
         )
     }
@@ -18,7 +18,8 @@ const styles = StyleSheet.create({
         backgroundColor: '#CCCCCC',
     },
     text: {
-        color: 'red'
+        color: 'black',
+        textAlign: 'center'
     }
 });
-module.exports = Auth;
+module.exports = Share;

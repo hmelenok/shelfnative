@@ -3,19 +3,38 @@
  * https://github.com/facebook/react-native
  * @flow
  */
+/**
+ * Lib part
+ */
 import React, {Component} from "react";
-import {AppRegistry, StyleSheet, Text, View} from "react-native";
-import {Router, Scene} from "react-native-router-flux";
-import Auth from "./app/Auth";
-import Share from "./app/Share";
+import {AppRegistry, StyleSheet, Text, View, Switch} from "react-native";
+import {Scene, Router, Actions} from "react-native-router-flux";
+import Meteor, { createContainer } from "react-native-meteor";
+import Auth from "./app/views/Auth";
+import Share from "./app/views/Share";
+import Connecting from "./app/views/Connecting";
+
+import connect from './app/connectivity/connect';
+import RouteList from './app/routes/routeList';
+
+@connectMeteor
 
 class shelfnative extends Component {
+    componentWillMount() {
+        connect();
+    }
+
     render() {
         return (
-            <Router>
-                <Scene key="root" style={styles.container}>
-                    <Scene key="auth" style={styles.child} component={Auth} title="Auth" initial={true}/>
-                    <Scene key="share" style={styles.child} component={Share} title="Share" />
+            <Router getSceneStyle={()=>styles.container}>
+                <Scene key="root">
+                    <Scene key="routelist" component={RouteList} title="Home"/>
+
+                    <Scene key="getMeteorConnection" component={Connection} title="Meteor Connection"/>
+                    <Scene key="getAccounts" component={Accounts} title="Accounts"/>
+                    <Scene key="getMeteorListView" component={MeteorListView} title="Meteor List View"/>
+                    <Scene key="getMeteorComplexListView" component={MeteorComplexListView} title="Meteor Complex List View"/>
+                    <Scene key="getEditItem" component={EditItem} title="Edit Item"/>
                 </Scene>
             </Router>
         )

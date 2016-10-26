@@ -4,6 +4,5 @@
 import Meteor from 'react-native-meteor';
 
 export default function() {
-    const url = 'https://app.shelf.io/websocket';
-    Meteor.connect(url);
+    Meteor.connect('wss://app.shelf.io/websocket');
 }

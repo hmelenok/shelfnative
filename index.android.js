@@ -9,35 +9,53 @@
 import React, {Component} from "react";
 import {AppRegistry, StyleSheet, Text, View, Switch} from "react-native";
 import {Scene, Router, Actions} from "react-native-router-flux";
-import Meteor, { createContainer } from "react-native-meteor";
+import Meteor from "react-native-meteor";
 import Auth from "./app/views/Auth";
 import Share from "./app/views/Share";
 import Connecting from "./app/views/Connecting";
 
-import connect from './app/connectivity/connect';
-import RouteList from './app/routes/routeList';
+const scenes = Actions.create(
+    <Scene key="root">
+        <Scene key="connecting" component={Connecting} title="Connecting" initail="true"/>
+        <Scene key="auth" component={Auth} title="Login"/>
+        <Scene key="share" component={Share} title="Share"/>
+    </Scene>
+);
 
-@connectMeteor
+Meteor.connect('wss://app.shelf.io/websocket');
 
 class shelfnative extends Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            connected: false,
+            user: null
+        };
+        Meteor.onLogin(() => {
+            this.setState({user: Meteor.user()});
+        });
+    }
+
+    componentWillUpdate(nextProps, nextState) {
+        console.log('componentWillUpdate', nextProps, nextState);
+    }
+
+    componentDidUpdate(prevProps, prevState) {
+        console.log('componentDidUpdate', prevProps, prevState);
+    }
+
     componentWillMount() {
-        connect();
+        console.log('componentWillMount');
+        const timer = setInterval(() => {
+            if (Meteor.status().connected) {
+                clearInterval(timer);
+                this.setState({connected: Meteor.status().connected});
+            }
+        }, 250);
     }
 
     render() {
-        return (
-            <Router getSceneStyle={()=>styles.container}>
-                <Scene key="root">
-                    <Scene key="routelist" component={RouteList} title="Home"/>
-
-                    <Scene key="getMeteorConnection" component={Connection} title="Meteor Connection"/>
-                    <Scene key="getAccounts" component={Accounts} title="Accounts"/>
-                    <Scene key="getMeteorListView" component={MeteorListView} title="Meteor List View"/>
-                    <Scene key="getMeteorComplexListView" component={MeteorComplexListView} title="Meteor Complex List View"/>
-                    <Scene key="getEditItem" component={EditItem} title="Edit Item"/>
-                </Scene>
-            </Router>
-        )
+        return <Router scenes={scenes}/>;
     }
 }
 

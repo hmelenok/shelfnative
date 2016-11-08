@@ -7,9 +7,9 @@
  * Lib part
  */
 import React, {Component} from "react";
-import {AppRegistry, StyleSheet, Text, View, Switch} from "react-native";
+import {Alert, AppRegistry, BackAndroid, StyleSheet, Text, View, Switch} from "react-native";
 import {Scene, Router, Actions} from "react-native-router-flux";
-import Meteor from "react-native-meteor";
+import Meteor, {Accounts} from "react-native-meteor";
 import Auth from "./app/views/Auth";
 import Share from "./app/views/Share";
 import Connecting from "./app/views/Connecting";
@@ -17,12 +17,12 @@ import Connecting from "./app/views/Connecting";
 const scenes = Actions.create(
     <Scene key="root">
         <Scene key="connecting" component={Connecting} title="Connecting" initail="true"/>
-        <Scene key="auth" component={Auth} title="Login"/>
+        <Scene key="auth" component={Auth} title="Login" hideNavBar="true"/>
         <Scene key="share" component={Share} title="Share"/>
     </Scene>
 );
 
-Meteor.connect('wss://app.shelf.io/websocket');
+// Meteor.connect('wss://app.shelf.io/websocket');
 
 class shelfnative extends Component {
     constructor(props) {
@@ -31,27 +31,53 @@ class shelfnative extends Component {
             connected: false,
             user: null
         };
-        Meteor.onLogin(() => {
-            this.setState({user: Meteor.user()});
+    }
+
+    connect() {
+        Meteor.connect('wss://app.shelf.io/websocket');
+        Meteor.waitDdpConnected(() => {
+            this.setState({connected: true});
+            console.log(Meteor, Meteor.user());
+        });
+        setTimeout(() => {
+            if(!this.state.connected){
+                this.connectionProblems();
+            }
+        }, 10000)
+    }
+    connectionProblems(){
+        if(!this.state.connected) {
+            Alert.alert(
+                'Connection problem',
+                'Sorry we can\'t connect you to shelf.io right now',
+                [
+                    {text: 'Quit', onPress: () => BackAndroid.exitApp(), style: 'cancel'},
+                    {text: 'Retry', onPress: () => this.connect()},
+                ]
+            )
+        }
+    }
+
+    connected() {
+        console.log('connected', Meteor, Meteor.user(), Accounts);
+        if(Meteor.user() === null){
+            Actions.auth({});
+        }
+
+        Accounts.onLogin((userId) => {
+            console.log('onLogin', userId);
         });
     }
 
     componentWillUpdate(nextProps, nextState) {
-        console.log('componentWillUpdate', nextProps, nextState);
-    }
-
-    componentDidUpdate(prevProps, prevState) {
-        console.log('componentDidUpdate', prevProps, prevState);
+        console.log('componentWillUpdate', nextState);
+        if(nextState.connected && nextState.connected === true){
+            this.connected();
+        }
     }
 
     componentWillMount() {
-        console.log('componentWillMount');
-        const timer = setInterval(() => {
-            if (Meteor.status().connected) {
-                clearInterval(timer);
-                this.setState({connected: Meteor.status().connected});
-            }
-        }, 250);
+        this.connect();
     }
 
     render() {

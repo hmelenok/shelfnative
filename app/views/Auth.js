@@ -1,5 +1,6 @@
 import React, {Component} from "react";
 import {View, Text, StyleSheet, TextInput, TouchableHighlight, Dimensions, Image} from "react-native";
+import {Scene, Router, Actions} from "react-native-router-flux";
 import Meteor from "react-native-meteor";
 const width = Dimensions.get('window').width;
 const height = Dimensions.get('window').height;
@@ -7,7 +8,7 @@ const height = Dimensions.get('window').height;
 class Auth extends Component {
     constructor(props) {
         super(props);
-        this.state = {email: 'hmelenok@gmail.com', password: 'hmelenok91'};
+        this.state = {email: '', password: ''};
     }
 
     focusNextField(nextField) {

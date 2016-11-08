@@ -1,6 +1,5 @@
 import React, {Component} from "react";
-import {View, Text, StyleSheet, TextInput, TouchableHighlight, Dimensions, Image} from "react-native";
-import {Scene, Router, Actions} from "react-native-router-flux";
+import {ToastAndroid, View, Text, StyleSheet, TextInput, TouchableHighlight, Dimensions, Image} from "react-native";
 import Meteor from "react-native-meteor";
 const width = Dimensions.get('window').width;
 const height = Dimensions.get('window').height;
@@ -10,18 +9,17 @@ class Auth extends Component {
         super(props);
         this.state = {email: '', password: ''};
     }
-
+    componentDidMount() {
+        console.log('Auth');
+    }
     focusNextField(nextField) {
         this.refs[nextField].focus();
     }
 
     submitAction() {
-        console.log(Meteor.ddp);
-        Meteor.loginWithPassword(this.state.email, this.state.password, (err)=> {
-            if (!err) {
-                Actions.share();
-            } else {
-                alert(err);
+        Meteor.loginWithPassword(this.state.email, this.state.password, (err) => {
+            if (err) {
+                ToastAndroid.showWithGravity(err, ToastAndroid.SHORT, ToastAndroid.CENTER);
             }
         });
     }

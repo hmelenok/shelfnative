@@ -34,19 +34,21 @@ class shelfnative extends Component {
     }
 
     connect() {
+        console.log('start ddp connection');
         Meteor.connect('wss://app.shelf.io/websocket');
         Meteor.waitDdpConnected(() => {
             this.setState({connected: true});
-            console.log(Meteor, Meteor.user());
+            // console.log(Meteor, Meteor.user());
         });
         setTimeout(() => {
-            if(!this.state.connected){
+            if (!this.state.connected) {
                 this.connectionProblems();
             }
         }, 10000)
     }
-    connectionProblems(){
-        if(!this.state.connected) {
+
+    connectionProblems() {
+        if (!this.state.connected) {
             Alert.alert(
                 'Connection problem',
                 'Sorry we can\'t connect you to shelf.io right now',
@@ -59,19 +61,20 @@ class shelfnative extends Component {
     }
 
     connected() {
-        console.log('connected', Meteor, Meteor.user(), Accounts);
-        if(Meteor.user() === null){
+        console.log('connected'/*, Meteor, Meteor.user(), Accounts*/);
+        if (Meteor.user() === null) {
             Actions.auth({});
         }
 
         Accounts.onLogin((userId) => {
             console.log('onLogin', userId);
+            Actions.share({});
         });
     }
 
     componentWillUpdate(nextProps, nextState) {
         console.log('componentWillUpdate', nextState);
-        if(nextState.connected && nextState.connected === true){
+        if (nextState.connected && nextState.connected === true) {
             this.connected();
         }
     }
@@ -80,8 +83,16 @@ class shelfnative extends Component {
         this.connect();
     }
 
+    componentDidMount() {
+        console.log('Router');
+    }
+
+    backAction() {
+
+    }
+
     render() {
-        return <Router scenes={scenes}/>;
+        return <Router scenes={scenes} backAndroidHandler={this.backAction}/>;
     }
 }
 

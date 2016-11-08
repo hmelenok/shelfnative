@@ -13,7 +13,6 @@ class Share extends Component {
 }
 const styles = StyleSheet.create({
     container: {
-        marginTop: 50,
         height: 150,
         backgroundColor: '#CCCCCC',
     },

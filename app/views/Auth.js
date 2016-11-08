@@ -19,7 +19,7 @@ class Auth extends Component {
     submitAction() {
         Meteor.loginWithPassword(this.state.email, this.state.password, (err) => {
             if (err) {
-                ToastAndroid.showWithGravity(err, ToastAndroid.SHORT, ToastAndroid.CENTER);
+                ToastAndroid.showWithGravity(err.reason, ToastAndroid.SHORT, ToastAndroid.CENTER);
             }
         });
     }

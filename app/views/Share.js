@@ -1,11 +1,19 @@
 import React, { Component } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text,TouchableHighlight, StyleSheet } from 'react-native';
 import { Actions } from 'react-native-router-flux';
+import Meteor from "react-native-meteor";
 
 class Share extends Component {
+    logout(){
+        Meteor.logout();
+        Actions.auth();
+    }
     render() {
         return (
             <View style={styles.container}>
+                <TouchableHighlight onPress={this.logout}>
+                    <Text>Logout</Text>
+                </TouchableHighlight>
                 <Text style={styles.text} onPress={Actions.auth}>This is Share!</Text>
             </View>
         )

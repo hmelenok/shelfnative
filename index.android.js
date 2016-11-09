@@ -1,18 +1,13 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- * @flow
- */
-/**
- * Lib part
- */
 import React, {Component} from "react";
-import {Alert, AppRegistry, BackAndroid, StyleSheet, Text, View, Switch} from "react-native";
+import _ from "lodash";
+import {Alert, AppRegistry, BackAndroid, StyleSheet, NativeModules} from "react-native";
 import {Scene, Router, Actions} from "react-native-router-flux";
 import Meteor, {Accounts} from "react-native-meteor";
 import Auth from "./app/views/Auth";
 import Share from "./app/views/Share";
 import Connecting from "./app/views/Connecting";
+const Shares = require('./app/storage/shares');
+const SharesStorage = new Shares();
 
 const scenes = Actions.create(
     <Scene key="root">
@@ -21,8 +16,6 @@ const scenes = Actions.create(
         <Scene key="share" component={Share} title="Share"/>
     </Scene>
 );
-
-// Meteor.connect('wss://app.shelf.io/websocket');
 
 class shelfnative extends Component {
     constructor(props) {
@@ -38,7 +31,6 @@ class shelfnative extends Component {
         Meteor.connect('wss://app.shelf.io/websocket');
         Meteor.waitDdpConnected(() => {
             this.setState({connected: true});
-            // console.log(Meteor, Meteor.user());
         });
         setTimeout(() => {
             if (!this.state.connected) {
@@ -72,6 +64,20 @@ class shelfnative extends Component {
         });
     }
 
+    listenToIntend() {
+
+        NativeModules.EphemeralStorage.readOnceAsync((data) => {
+            console.log('listenToIntend', data);
+            if (data) {
+                SharesStorage.add({
+                    data: data,
+                    type: 'Bookmark'
+                });
+            }
+
+        })
+    }
+
     componentWillUpdate(nextProps, nextState) {
         console.log('componentWillUpdate', nextState);
         if (nextState.connected && nextState.connected === true) {
@@ -81,6 +87,7 @@ class shelfnative extends Component {
 
     componentWillMount() {
         this.connect();
+        this.listenToIntend();
     }
 
     componentDidMount() {
@@ -94,6 +101,8 @@ class shelfnative extends Component {
     render() {
         return <Router scenes={scenes} backAndroidHandler={this.backAction}/>;
     }
+
+
 }
 
 const styles = StyleSheet.create({

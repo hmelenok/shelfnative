@@ -1,10 +1,11 @@
 import React, {Component} from "react";
-import {ScrollView, StyleSheet, Text, TouchableHighlight, View} from "react-native";
+import {ScrollView, StyleSheet, Text, TouchableHighlight, View, Dimensions} from "react-native";
 import {Actions} from "react-native-router-flux";
 import Meteor from "react-native-meteor";
 import _ from "lodash";
 const Shares = require('../storage/shares');
 const SharesStorage = new Shares();
+const {height, width} = Dimensions.get('window');
 
 class Share extends Component {
     constructor(props) {
@@ -35,8 +36,8 @@ class Share extends Component {
                     <View key={i} style={styles.listItem}>
                         <Text style={styles.listItemType}>{share.type}</Text>
                         <Text style={styles.listItemData} numberOfLines={1}>{share.data}</Text>
-                        <TouchableHighlight onPress={this.shareItem(share)}>
-                            <Text style={styles.logout}>Share</Text>
+                        <TouchableHighlight style={styles.listItemShare} onPress={this.shareItem(share)}>
+                            <Text style={styles.listItemShareText}>Share</Text>
                         </TouchableHighlight>
                     </View>
                 );
@@ -102,14 +103,22 @@ const styles = StyleSheet.create({
         borderBottomColor: '#e0e0e0',
         borderStyle: 'solid',
         borderBottomWidth: 1,
-        padding: 8
+        paddingTop: 16,
+        paddingBottom: 16,
+        paddingLeft: 8,
+        paddingRight: 8,
+        maxWidth: width
     },
     listItemType: {
-        padding: 8
+        marginRight: 8
     },
     listItemData: {
-        padding: 8,
         flexGrow: 1
+    },
+    listItemShare: {
+    },
+    listItemShareText: {
+        textAlign: 'center'
     },
     slot: {
         flex: 1,

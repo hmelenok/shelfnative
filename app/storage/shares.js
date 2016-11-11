@@ -18,7 +18,7 @@ export default class SharesStorage {
 
     add(share) {
         this.getItems((currentShares) => {
-            newShares = _.union(currentShares, [share]);
+            newShares = _.uniqBy(_.union(currentShares, [share]), 'data');
             AsyncStorage.setItem('shares', JSON.stringify(newShares));
         });
 

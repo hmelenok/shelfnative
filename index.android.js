@@ -1,19 +1,21 @@
 import React, {Component} from "react";
-import _ from "lodash";
 import {Alert, AppRegistry, BackAndroid, StyleSheet, NativeModules} from "react-native";
 import {Scene, Router, Actions} from "react-native-router-flux";
 import Meteor, {Accounts} from "react-native-meteor";
 import Auth from "./app/views/Auth";
 import Share from "./app/views/Share";
 import Connecting from "./app/views/Connecting";
+import _ from "lodash";
 const Shares = require('./app/storage/shares');
+const UserStorage = require('./app/storage/user');
 const SharesStorage = new Shares();
+const User = new UserStorage();
 
 const scenes = Actions.create(
     <Scene key="root">
         <Scene key="connecting" component={Connecting} title="Connecting" initail="true"/>
         <Scene key="auth" component={Auth} title="Login" hideNavBar="true"/>
-        <Scene key="share" component={Share} title="Share"/>
+        <Scene key="share" component={Share} title="Share" hideNavBar="true"/>
     </Scene>
 );
 
@@ -27,11 +29,15 @@ class shelfnative extends Component {
     }
 
     connect() {
-        console.log('start ddp connection');
         Meteor.connect('wss://app.shelf.io/websocket');
+
         Meteor.waitDdpConnected(() => {
             this.setState({connected: true});
+            setTimeout(() => {
+                this.connected();
+            }, 1000);
         });
+
         setTimeout(() => {
             if (!this.state.connected) {
                 this.connectionProblems();
@@ -53,36 +59,39 @@ class shelfnative extends Component {
     }
 
     connected() {
-        console.log('connected'/*, Meteor, Meteor.user(), Accounts*/);
-        if (Meteor.user() === null) {
-            Actions.auth({});
+        const goToMain = () => Actions.share();
+        const goToAuth = () => Actions.auth();
+        // console.log('connected', Meteor.user(), Meteor.userId(), Meteor.loggingIn());
+        if (Meteor.user() === null && Meteor.loggingIn() === false) {
+            goToAuth();
+        } else {
+            if (_.isString(Meteor.userId())) {
+                goToMain();
+            } else {
+                User.getUser((user) => goToMain);
+            }
+
         }
 
-        Accounts.onLogin((userId) => {
-            console.log('onLogin', userId);
-            Actions.share({});
+        Accounts.onLogin(() => {
+            User.setUser(Meteor.user());
+            goToMain();
+        });
+        Accounts.onLoginFailure(()=>{
+            goToAuth();
         });
     }
 
     listenToIntend() {
-
-        NativeModules.EphemeralStorage.readOnceAsync((data) => {
-            console.log('listenToIntend', data);
+        NativeModules.EphemeralStorage.readOnceAsync(function(data){
+            console.log('listenToIntend', arguments);
             if (data) {
                 SharesStorage.add({
                     data: data,
                     type: 'Bookmark'
                 });
             }
-
         })
-    }
-
-    componentWillUpdate(nextProps, nextState) {
-        console.log('componentWillUpdate', nextState);
-        if (nextState.connected && nextState.connected === true) {
-            this.connected();
-        }
     }
 
     componentWillMount() {
@@ -99,10 +108,8 @@ class shelfnative extends Component {
     }
 
     render() {
-        return <Router scenes={scenes} backAndroidHandler={this.backAction}/>;
+        return <Router styles={styles.container} scenes={scenes} backAndroidHandler={this.backAction}/>;
     }
-
-
 }
 
 const styles = StyleSheet.create({
@@ -110,11 +117,10 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#000000',
+        backgroundColor: 'white',
     },
     child: {
-        height: 100,
-        backgroundColor: '#FFFFFF',
+        height: 100
     }
 });
 

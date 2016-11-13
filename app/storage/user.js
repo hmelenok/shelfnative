@@ -1,12 +1,9 @@
-/**
- * Created by hmelenok on 11/9/16.
- */
 import {AsyncStorage} from "react-native";
-
+import Meteor from "react-native-meteor";
+import {Actions} from "react-native-router-flux";
 export default class UserStorage {
     getUser(cb) {
         AsyncStorage.getItem('user', (err, result) => {
-            console.log(err, result);
             cb(JSON.parse(result));
         })
             .catch(e => {
@@ -14,8 +11,23 @@ export default class UserStorage {
                 cb(false);
             });
     }
+
     setUser(meteorUser) {
-            AsyncStorage.setItem('shares', JSON.stringify(meteorUser));
+        console.log('setUser');
+        AsyncStorage.setItem('user', JSON.stringify(meteorUser));
+    }
+
+    clearUser() {
+        AsyncStorage.removeItem('user', null);
+        this.getUser((user)=>{
+            console.log('user cleared', user);
+        });
+    }
+
+    logout() {
+        Meteor.logout();
+        this.clearUser();
+        Actions.auth();
     }
 }
 

@@ -16,12 +16,26 @@ export default class SharesStorage {
             });
     }
 
-    add(share) {
+    setItems(newShares, cb = false) {
+        AsyncStorage.setItem('shares', JSON.stringify(newShares));
+        if (cb) {
+            cb(true);
+        }
+    }
+
+    add(share, done = false) {
         this.getItems((currentShares) => {
-            newShares = _.uniqBy(_.union(currentShares, [share]), 'data');
-            AsyncStorage.setItem('shares', JSON.stringify(newShares));
+            this.setItems(_.uniqBy(_.union(currentShares || [], [share]), 'data'),
+                () => done && done());
         });
 
+    }
+
+    removeByData(share, done) {
+        this.getItems((currentShares) => {
+            this.setItems(_.uniqBy(_.reject(currentShares, {'data': share.data}), 'data'),
+                () => done(true));
+        });
     }
 }
 

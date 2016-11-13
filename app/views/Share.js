@@ -1,10 +1,12 @@
 import React, {Component} from "react";
 import {ScrollView, StyleSheet, Text, TouchableHighlight, View, Dimensions} from "react-native";
-import {Actions} from "react-native-router-flux";
-import Meteor from "react-native-meteor";
 import _ from "lodash";
+import Icon from "react-native-vector-icons/MaterialIcons";
+import Swipeout from "react-native-swipeout";
 const Shares = require('../storage/shares');
 const SharesStorage = new Shares();
+const UserStorage = require('../storage/user');
+const User = new UserStorage();
 const {height, width} = Dimensions.get('window');
 
 class Share extends Component {
@@ -14,32 +16,77 @@ class Share extends Component {
             shares: []
         };
     }
-    logout(){
-        Meteor.logout();
-        Actions.auth();
+
+    buttonRight(share) {
+        return [
+            {
+                component: (<Icon name="delete"
+                                  size={30}
+                                  color="white"
+                                  style={styles.listItemShareIcon}
+                                  onPress={() => this.removeShare(share)}/>),
+                backgroundColor: '#E53935',
+                onPress: ()=> this.removeShare(share),
+                color: 'white',
+                type: 'secondary'
+            }
+        ];
     }
-    componentWillMount(){
-        console.log('SharesStorage', SharesStorage);
-        SharesStorage.getItems((result)=>{
+
+    buttonLeft(share) {
+        return [
+            {
+                component: (<Icon name="share"
+                                  size={30}
+                                  color="white"
+                                  onPress={() => this.shareItem(share)}
+                                  style={styles.listItemShareIcon}/>),
+                backgroundColor: '#76FF03',
+                onPress: () => this.shareItem(share),
+                color: 'white',
+                type: 'primary'
+            }
+        ];
+    }
+
+    logout() {
+        User.logout();
+    }
+
+    componentWillMount() {
+        this.checkShares();
+    }
+
+    checkShares() {
+        SharesStorage.getItems((result) => {
             this.setState({
                 shares: result
             });
         });
     }
-    shareItem(share){
+
+    shareItem(share) {
 
     }
-    shares(){
-        if(_.isArray(this.state.shares)){
+
+    removeShare(share) {
+        SharesStorage.removeByData(share, ()=>{
+            this.checkShares();
+        });
+    }
+
+    shares() {
+        if (_.isArray(this.state.shares)) {
             return this.state.shares.map((share, i) => {
                 return (
                     <View key={i} style={styles.listItem}>
-                        <Text style={styles.listItemType}>{share.type}</Text>
-                        <Text style={styles.listItemData} numberOfLines={1}>{share.data}</Text>
-                        <TouchableHighlight style={styles.listItemShare} onPress={this.shareItem(share)}>
-                            <Text style={styles.listItemShareText}>Share</Text>
-                        </TouchableHighlight>
+                        <Swipeout right={this.buttonRight(share)}
+                                  left={this.buttonLeft(share)}
+                                  style={styles.listItemSwipeWrapper}>
+                            <Text style={styles.listItemData} numberOfLines={1}>{share.data}</Text>
+                        </Swipeout>
                     </View>
+
                 );
             });
         } else {
@@ -51,23 +98,33 @@ class Share extends Component {
         }
 
     }
+
     render() {
         return (
-            <ScrollView  style={styles.container}>
+            <View style={styles.wrapper}>
                 <View style={styles.topPanel}>
+                    <TouchableHighlight style={styles.menuWrapper}>
+                        <Icon name="menu" style={styles.menu}/>
+                    </TouchableHighlight>
+                    <View style={styles.separator}></View>
                     <TouchableHighlight style={styles.logoutWrapper} onPress={this.logout}>
-                        <Text style={styles.logout}>Logout</Text>
+                        <Icon name="exit-to-app" style={styles.logout}/>
                     </TouchableHighlight>
                 </View>
-
-                <View style={styles.list}>
-                    {this.shares()}
-                </View>
-            </ScrollView>
+                <ScrollView style={styles.container}>
+                    <View style={styles.list}>
+                        {this.shares()}
+                    </View>
+                </ScrollView>
+            </View>
         )
     }
 }
 const styles = StyleSheet.create({
+    wrapper: {
+        flex: 1,
+        height: height
+    },
     container: {
         flex: 1,
         backgroundColor: 'white',
@@ -75,13 +132,32 @@ const styles = StyleSheet.create({
     text: {
         color: 'black',
     },
+    separator: {
+        flexGrow: 1
+    },
     topPanel: {
-        backgroundColor: '#2A303B'
+        backgroundColor: '#2A303B',
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+        height: 60,
+        width: width,
+        justifyContent: 'center'
     },
     logoutWrapper: {
-        width: 100,
-        margin: 8,
-        alignSelf: 'flex-end'
+        padding: 8,
+        alignSelf: 'flex-end',
+        flexShrink: 0,
+        flexGrow: 0
+    },
+    menuWrapper: {
+        alignSelf: 'flex-start',
+        width: 40,
+        flexShrink: 0,
+        flexGrow: 0
+    },
+    menu: {
+        color: 'white',
+        fontSize: 20
     },
     logout: {
         color: 'red',
@@ -92,6 +168,7 @@ const styles = StyleSheet.create({
         borderStyle: 'solid',
         borderRadius: 4,
         backgroundColor: 'white',
+        fontSize: 20
     },
     list: {
         flex: 1,
@@ -103,22 +180,26 @@ const styles = StyleSheet.create({
         borderBottomColor: '#e0e0e0',
         borderStyle: 'solid',
         borderBottomWidth: 1,
-        paddingTop: 16,
-        paddingBottom: 16,
-        paddingLeft: 8,
-        paddingRight: 8,
-        maxWidth: width
+        width: width
     },
-    listItemType: {
-        marginRight: 8
+    listItemSwipeWrapper: {
+        flexDirection: 'row',
+        width: width,
+        flex: 1,
+        backgroundColor: 'white'
     },
     listItemData: {
-        flexGrow: 1
+        flexGrow: 1,
+        fontSize: 18,
+        color: 'black',
+        padding: 8,
+        maxWidth: width
     },
-    listItemShare: {
-    },
-    listItemShareText: {
-        textAlign: 'center'
+    listItemShare: {},
+    listItemShareIcon: {
+        textAlign: 'center',
+        padding: 8,
+        fontSize: 20
     },
     slot: {
         flex: 1,

@@ -1,11 +1,15 @@
 import React, {Component} from "react";
 import {Alert, AppRegistry, BackAndroid, StyleSheet, NativeModules} from "react-native";
+import _ from "lodash";
 import {Scene, Router, Actions} from "react-native-router-flux";
 import Meteor, {Accounts} from "react-native-meteor";
 import Auth from "./app/views/Auth";
 import Share from "./app/views/Share";
 import Connecting from "./app/views/Connecting";
-import _ from "lodash";
+import reactMixin from 'react-mixin';
+import TimerMixin from 'react-timer-mixin';
+
+
 const Shares = require('./app/storage/shares');
 const UserStorage = require('./app/storage/user');
 const SharesStorage = new Shares();
@@ -13,7 +17,7 @@ const User = new UserStorage();
 
 const scenes = Actions.create(
     <Scene key="root">
-        <Scene key="connecting" component={Connecting} title="Connecting" initail="true"/>
+        <Scene key="connecting" component={Connecting} hideNavBar="true" title="Connecting" initail="true"/>
         <Scene key="auth" component={Auth} title="Login" hideNavBar="true"/>
         <Scene key="share" component={Share} title="Share" hideNavBar="true"/>
     </Scene>
@@ -28,17 +32,27 @@ class shelfnative extends Component {
         };
     }
 
-    connect() {
-        Meteor.connect('wss://app.shelf.io/websocket');
+    componentWillUnmount() {
+        Meteor.disconnect();
+        User.setUser(null);
+    }
 
-        Meteor.waitDdpConnected(() => {
-            this.setState({connected: true});
-            setTimeout(() => {
-                this.connected();
-            }, 1000);
+    connect() {
+        Meteor.connect('wss://app.shelf.io/websocket', {
+            autoReconnect: true,
+            reconnectInterval: 1000
         });
 
-        setTimeout(() => {
+        Meteor.waitDdpConnected(() => {
+            this.setTimeout(()=>{
+                console.log('waitDdpConnected');
+                this.setState({connected: true});
+                this.connected();
+            }, 2000);
+
+        });
+
+        this.setTimeout(() => {
             if (!this.state.connected) {
                 this.connectionProblems();
             }
@@ -59,32 +73,38 @@ class shelfnative extends Component {
     }
 
     connected() {
-        const goToMain = () => Actions.share();
-        const goToAuth = () => Actions.auth();
-        // console.log('connected', Meteor.user(), Meteor.userId(), Meteor.loggingIn());
+        console.log('connected', Meteor.userId(), Meteor.loggingIn(), Actions.get());
         if (Meteor.user() === null && Meteor.loggingIn() === false) {
-            goToAuth();
+            Actions.auth();
         } else {
             if (_.isString(Meteor.userId())) {
-                goToMain();
+                console.log('Meteor.userId()', Meteor.userId());
+                Actions.share();
             } else {
-                User.getUser((user) => goToMain);
+                User.getUser((user) => {
+                    if (user) {
+                        console.log('presaved user find', user);
+                        Actions.share();
+                    }
+                });
             }
 
         }
 
         Accounts.onLogin(() => {
             User.setUser(Meteor.user());
-            goToMain();
+            console.log('onlogin callback', Meteor.user());
+            Actions.share();
         });
-        Accounts.onLoginFailure(()=>{
-            goToAuth();
+        Accounts.onLoginFailure(() => {
+            Actions.auth();
         });
     }
 
     listenToIntend() {
-        NativeModules.EphemeralStorage.readOnceAsync(function(data){
-            console.log('listenToIntend', arguments);
+        NativeModules.EphemeralStorage.readOnceAsync(function(data) {
+            console.log('listenToIntend',
+                arguments);
             if (data) {
                 SharesStorage.add({
                     data: data,
@@ -108,7 +128,12 @@ class shelfnative extends Component {
     }
 
     render() {
-        return <Router styles={styles.container} scenes={scenes} backAndroidHandler={this.backAction}/>;
+        return <Router
+            styles={styles.container}
+            scenes={scenes}
+            backAndroidHandler={this.backAction}
+            duration={0}
+        />;
     }
 }
 
@@ -123,5 +148,7 @@ const styles = StyleSheet.create({
         height: 100
     }
 });
+
+reactMixin(shelfnative.prototype, TimerMixin);
 
 AppRegistry.registerComponent('shelfnative', () => shelfnative);

@@ -12,11 +12,14 @@ class Connecting extends Component {
 
 const styles = StyleSheet.create({
     container: {
-        marginTop: 50,
-        height: 150,
-        backgroundColor: '#CCCCCC',
+        flex: 1,
+        backgroundColor: 'white',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center'
     },
     text: {
+        flex: 1,
         color: 'black',
         textAlign: 'center'
     }

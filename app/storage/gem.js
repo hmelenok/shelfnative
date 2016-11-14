@@ -1,10 +1,10 @@
-import cuid from "cuid";
+import uuid from "uuid";
 import _ from "lodash";
 import Meteor from "react-native-meteor";
 
 export default class Gem {
     constructor() {
-        this._id = cuid();
+        this._id = uuid.v4();
         this.path = false;
         this.badge = 'No Badge';
         this.meta = {
@@ -77,6 +77,9 @@ export default class Gem {
     }
 
     putToS3(url, data, callback = _.noop) {
+        fetch(url, {
+            method: 'PUT',
+        });
         // $.ajax({
         //     type: 'PUT',
         //     processData: false,

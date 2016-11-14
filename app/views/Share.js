@@ -1,19 +1,20 @@
 import React, {Component} from "react";
-import {ScrollView, StyleSheet, Text, TouchableHighlight, View, Dimensions} from "react-native";
+import {ScrollView, StyleSheet, Text, TouchableHighlight, ToastAndroid, View, Dimensions} from "react-native";
 import _ from "lodash";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import Swipeout from "react-native-swipeout";
+import SideNav from "./SideNav";
 const Shares = require('../storage/shares');
+const Gem = require('../storage/gem');
 const SharesStorage = new Shares();
-const UserStorage = require('../storage/user');
-const User = new UserStorage();
 const {height, width} = Dimensions.get('window');
 
 class Share extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            shares: []
+            shares: [],
+            openNav: false
         };
     }
 
@@ -21,12 +22,12 @@ class Share extends Component {
         return [
             {
                 component: (<Icon name="delete"
-                                  size={30}
+                                  size={25}
                                   color="white"
                                   style={styles.listItemShareIcon}
                                   onPress={() => this.removeShare(share)}/>),
                 backgroundColor: '#E53935',
-                onPress: ()=> this.removeShare(share),
+                onPress: () => this.removeShare(share),
                 color: 'white',
                 type: 'secondary'
             }
@@ -37,20 +38,16 @@ class Share extends Component {
         return [
             {
                 component: (<Icon name="share"
-                                  size={30}
+                                  size={25}
                                   color="white"
                                   onPress={() => this.shareItem(share)}
                                   style={styles.listItemShareIcon}/>),
-                backgroundColor: '#76FF03',
+                backgroundColor: '#4CAF50',
                 onPress: () => this.shareItem(share),
                 color: 'white',
                 type: 'primary'
             }
         ];
-    }
-
-    logout() {
-        User.logout();
     }
 
     componentWillMount() {
@@ -66,24 +63,48 @@ class Share extends Component {
     }
 
     shareItem(share) {
+        let gem = new Gem();
+        console.log(share.data);
+        const items = share.data.split('\n').filter(item => {
+            return !_.isEmpty(item)
+        });
+        const link = _.head(items.filter(item => item.indexOf('http') > -1));
+        let title = _.head(items.filter(item => item.indexOf('http') === -1));
+        // console.log(share.data, 'link', link, 'title', title);
+        if (_.isEmpty(title)) {
+            title = link;
+        }
+        gem.title = title;
+        gem.type = share.type;
+        gem.informationSourceURL = link;
 
+        gem.insert('', (error) => {
+            if (error) {
+                ToastAndroid.showWithGravity(error.reason, ToastAndroid.SHORT, ToastAndroid.CENTER);
+            } else {
+                ToastAndroid.showWithGravity(
+                    'Gem shared it will appear in your private library',
+                    ToastAndroid.SHORT, ToastAndroid.CENTER);
+                this.removeShare(share);
+            }
+        });
     }
 
     removeShare(share) {
-        SharesStorage.removeByData(share, ()=>{
+        SharesStorage.removeByData(share, () => {
             this.checkShares();
         });
     }
 
     shares() {
-        if (_.isArray(this.state.shares)) {
+        if (_.isArray(this.state.shares) && !_.isEmpty(this.state.shares)) {
             return this.state.shares.map((share, i) => {
                 return (
                     <View key={i} style={styles.listItem}>
                         <Swipeout right={this.buttonRight(share)}
                                   left={this.buttonLeft(share)}
                                   style={styles.listItemSwipeWrapper}>
-                            <Text style={styles.listItemData} numberOfLines={1}>{share.data}</Text>
+                            <Text style={styles.listItemData} numberOfLines={3}>{share.data}</Text>
                         </Swipeout>
                     </View>
 
@@ -104,18 +125,17 @@ class Share extends Component {
             <View style={styles.wrapper}>
                 <View style={styles.topPanel}>
                     <TouchableHighlight style={styles.menuWrapper}>
-                        <Icon name="menu" style={styles.menu}/>
+                        <Icon name="menu" style={styles.menu} onPress={() => this.setState({openNav: true})}/>
                     </TouchableHighlight>
-                    <View style={styles.separator}></View>
-                    <TouchableHighlight style={styles.logoutWrapper} onPress={this.logout}>
-                        <Icon name="exit-to-app" style={styles.logout}/>
-                    </TouchableHighlight>
+                    <View style={styles.separator}>
+                    </View>
                 </View>
                 <ScrollView style={styles.container}>
                     <View style={styles.list}>
                         {this.shares()}
                     </View>
                 </ScrollView>
+                <SideNav open={this.state.openNav}/>
             </View>
         )
     }
@@ -139,7 +159,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#2A303B',
         flexDirection: 'row',
         alignItems: 'flex-start',
-        height: 60,
+        height: 50,
         width: width,
         justifyContent: 'center'
     },
@@ -151,24 +171,18 @@ const styles = StyleSheet.create({
     },
     menuWrapper: {
         alignSelf: 'flex-start',
-        width: 40,
         flexShrink: 0,
-        flexGrow: 0
+        flexGrow: 0,
+        padding: 8,
+        paddingTop: 10
     },
     menu: {
         color: 'white',
-        fontSize: 20
+        fontSize: 30
     },
     logout: {
-        color: 'red',
-        textAlign: 'center',
-        padding: 8,
-        borderWidth: 1,
-        borderColor: 'red',
-        borderStyle: 'solid',
-        borderRadius: 4,
-        backgroundColor: 'white',
-        fontSize: 20
+        color: 'white',
+        fontSize: 30
     },
     list: {
         flex: 1,
@@ -198,8 +212,7 @@ const styles = StyleSheet.create({
     listItemShare: {},
     listItemShareIcon: {
         textAlign: 'center',
-        padding: 8,
-        fontSize: 20
+        padding: 8
     },
     slot: {
         flex: 1,

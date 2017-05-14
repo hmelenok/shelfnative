@@ -55,3 +55,4 @@ fastlane/screenshots
 .env.dev
 .env.staging
 .env.prod
+.tmp/

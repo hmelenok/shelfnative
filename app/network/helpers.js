@@ -1,6 +1,23 @@
-import { get, isEmpty, isString, merge } from 'lodash';
-import {AsyncStorage} from "react-native";
+import Config from 'react-native-config'
+import {get, isEmpty, isString, merge} from "lodash";
+import {AsyncStorage, ToastAndroid} from "react-native";
+const gmailAPIEndpoint = Config.SHELF_API_GMAIL_ENDPOINT;
+const authAPIEndpoint = Config.SHELF_API_AUTH_ENDPOINT;
+const gemsAPIEndpoint = Config.SHELF_API_GEMS_ENDPOINT;
+const searchAPIEndpoint = Config.SHELF_API_SEARCH_ENDPOINT;
 
+export const authURL = `${authAPIEndpoint}/v1/auth`;
+export const revokeURL = `${authAPIEndpoint}/v1/revoke`;
+export const userDataURL = `${authAPIEndpoint}/v1/user`;
+export const treeURL = `${gemsAPIEndpoint}/v1/tree`;
+export const publicShareURL = `${gemsAPIEndpoint}/v1/public-share`;
+export const gemCreateURL = `${gemsAPIEndpoint}/v1/create`;
+export const getAuthURLURL = `${gmailAPIEndpoint}/v1/gmail/auth-url`;
+export const getThreadsURL = `${gmailAPIEndpoint}/v1/gmail/users/threads/get`;
+export const getThreadMessagesURL = `${gmailAPIEndpoint}/v1/gmail/users/messages/get`;
+export const getAttachmentsURL = `${gmailAPIEndpoint}/v1/gmail/users/messages/attachments/get`;
+export const searchURL = `${searchAPIEndpoint}/v1/gems`;
+export const hatracksURL = `${searchAPIEndpoint}/v1/hatracks`;
 /**
  * Invokes fetch with authorization header containing a token
  * Throws on any non 2XX response status code
@@ -9,15 +26,17 @@ import {AsyncStorage} from "react-native";
  * and add additional headers
  * @return {Promise.<Object>} JSON object with response
  */
-export async function makeAuthorizedRequest(url, additionalOptions = {}) {
-    const authToken = await getAuthToken();
-    const fetchOptions = merge({
-        headers: {Authorization: authToken},
-        mode: 'cors'
-    }, additionalOptions);
-    return fetch(url, fetchOptions)
-        .then(handleFetchErrors)
-        .then(resp => resp.json());
+export function makeAuthorizedRequest(url, additionalOptions = {}) {
+    return getAuthToken()
+        .then(authToken => {
+            const fetchOptions = merge({
+                headers: {Authorization: authToken},
+                mode: 'cors'
+            }, additionalOptions);
+            return fetch(url, fetchOptions)
+                .then(handleFetchErrors)
+                .then(resp => resp.json());
+        });
 }
 
 /**
@@ -26,7 +45,11 @@ export async function makeAuthorizedRequest(url, additionalOptions = {}) {
  */
 export function getAuthToken() {
     return new Promise(resolve => {
-        AsyncStorage.getItem('authToken',(err, token) => {
+        AsyncStorage.getItem('authToken', (err, token) => {
+            ToastAndroid.show(
+                err,
+                ToastAndroid.LONG
+            );
             resolve(token);
         });
     });
@@ -38,9 +61,9 @@ export function getAuthToken() {
  * @param {Object} response Fetch response object
  * @return {Promise.<Object>} Fetch response object
  */
-export async function handleFetchErrors(response) {
+export function handleFetchErrors(response) {
     if (!response.ok) {
-        const responseJson = await response.json();
+        const responseJson = response.json();
         const errorMessage = get(responseJson, 'error.message', response.statusText);
         if (isString(errorMessage) && !isEmpty(errorMessage)) {
             throw Error(errorMessage);
@@ -50,3 +73,32 @@ export async function handleFetchErrors(response) {
     return response;
 }
 
+export function obtainAuthToken(email, password) {
+    const options = {
+        method: 'POST',
+        body: JSON.stringify({email, password}),
+        mode: 'cors'
+    };
+
+    return fetch(authURL, options)
+        .then(handleFetchErrors)
+        .then(resp => resp.json())
+        .then(resp => resp.token)
+        .then(token => {
+            return new Promise(resolve => {
+                if (token) {
+                    return AsyncStorage.setItem('authToken', token);
+                }
+
+                return resolve(token);
+            });
+        })
+        .catch(error => {
+            if (isString(error.message)) {
+                ToastAndroid.show(
+                    error.message,
+                    ToastAndroid.LONG
+                );
+            }
+        });
+}

@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 // import { Actions } from 'react-native-router-flux';
 import {AsyncStorage, View, Text, StyleSheet, TextInput, TouchableHighlight,ToastAndroid, Dimensions, Image} from "react-native";
+import {obtainAuthToken,getAuthToken} from '../network/helpers';
 const width = Dimensions.get('window').width;
 const height = Dimensions.get('window').height;
 
@@ -21,9 +22,20 @@ export default class Login extends Component {
         this.refs[nextField].focus();
     }
 
+
     submitAction() {
         AsyncStorage.setItem('loginEmail',this.state.email);
-        ToastAndroid.show('A pikachu appeared nearby !', ToastAndroid.SHORT);
+        obtainAuthToken(this.state.email, this.password)
+            .then(() => {
+                getAuthToken()
+                    .then((info) => {
+                        alert(info);
+                    })
+            })
+            .catch((problem) => {
+                ToastAndroid.show(problem, ToastAndroid.SHORT);
+            });
+
     }
     render() {
         return (

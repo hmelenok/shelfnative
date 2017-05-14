@@ -20,18 +20,13 @@ const height = Dimensions.get('window').height;
 export default class Login extends Component {
     constructor(props) {
         super(props);
-        this.state = {email: '', password: '', lastError: ''};
+        this.state = {email: '', password: ''};
     }
 
     componentDidMount() {
         AsyncStorage.getItem('loginEmail', (err, email) => {
             if (email) {
                 this.setState({email});
-            }
-        });
-        AsyncStorage.getItem('lastError', (err, lastError) => {
-            if (lastError) {
-                this.setState({lastError});
             }
         });
     }
@@ -44,14 +39,16 @@ export default class Login extends Component {
     submitAction() {
         AsyncStorage.setItem('loginEmail', this.state.email);
         obtainAuthToken(this.state.email, this.state.password)
-            .then(() => {
+            .then((token) => {
                 getAuthToken()
                     .then((info) => {
-                        // alert(info);
+                        if(info) {
+                            ToastAndroid.show(
+                                'Successfully logged in',
+                                ToastAndroid.SHORT
+                            );
+                        }
                     })
-            })
-            .catch((problem) => {
-                // ToastAndroid.show(JSON.stringify(problem), ToastAndroid.SHORT);
             });
 
     }
@@ -95,12 +92,6 @@ export default class Login extends Component {
                         </View>
                     </TouchableHighlight>
                 </View>
-                <View style={styles.bigField}>
-                    <Text>
-                        {this.state.lastError}
-                    </Text>
-                </View>
-
             </View>
         </ScrollView>
 

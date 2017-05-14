@@ -46,11 +46,7 @@ export function makeAuthorizedRequest(url, additionalOptions = {}) {
 export function getAuthToken() {
     return new Promise(resolve => {
         AsyncStorage.getItem('authToken', (err, token) => {
-            ToastAndroid.show(
-                err,
-                ToastAndroid.SHORT
-            );
-            resolve(token);
+            return resolve(token);
         });
     });
 }
@@ -89,9 +85,8 @@ export function obtainAuthToken(email, password) {
         .then(token => {
             return new Promise(resolve => {
                 if (token) {
-                    return AsyncStorage.setItem('authToken', token);
+                    AsyncStorage.setItem('authToken', token);
                 }
-
                 return resolve(token);
             });
         });

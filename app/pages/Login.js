@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
-import { Actions } from 'react-native-router-flux';
-import {ToastAndroid, View, Text, StyleSheet, TextInput, TouchableHighlight, Dimensions, Image} from "react-native";
+// import { Actions } from 'react-native-router-flux';
+import {AsyncStorage, View, Text, StyleSheet, TextInput, TouchableHighlight,ToastAndroid, Dimensions, Image} from "react-native";
 const width = Dimensions.get('window').width;
 const height = Dimensions.get('window').height;
 
@@ -11,14 +11,19 @@ export default class Login extends Component {
         this.state = {email: '', password: ''};
     }
     componentDidMount() {
-        console.log('Auth');
+        AsyncStorage.getItem('loginEmail', (err, email) => {
+            if(email) {
+                this.setState({email});
+            }
+        });
     }
     focusNextField(nextField) {
         this.refs[nextField].focus();
     }
 
     submitAction() {
-       alert('submit', this.state);
+        AsyncStorage.setItem('loginEmail',this.state.email);
+        ToastAndroid.show('A pikachu appeared nearby !', ToastAndroid.SHORT);
     }
     render() {
         return (

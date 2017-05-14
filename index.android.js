@@ -2,12 +2,13 @@ import React, {Component} from "react";
 import {AppRegistry, StyleSheet} from "react-native";
 import {Router, Scene} from "react-native-router-flux";
 
+
 import Login from "./app/pages/Login";
 
 export default class shelfnative extends Component {
     render() {
         return (
-            <Router>
+            <Router hideNavBar={true}>
                 <Scene key="root">
                     <Scene key="login" component={Login} title="Login" initial={true}/>
                 </Scene>

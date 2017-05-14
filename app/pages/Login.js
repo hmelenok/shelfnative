@@ -1,7 +1,18 @@
-import React, { Component } from 'react';
+import React, {Component} from "react";
 // import { Actions } from 'react-native-router-flux';
-import {AsyncStorage, View, Text, StyleSheet, TextInput, TouchableHighlight,ToastAndroid, Dimensions, Image} from "react-native";
-import {obtainAuthToken,getAuthToken} from '../network/helpers';
+import {
+    AsyncStorage,
+    Dimensions,
+    Image,
+    StyleSheet,
+    Text,
+    TextInput,
+    ToastAndroid,
+    TouchableHighlight,
+    View,
+    ScrollView
+} from "react-native";
+import {getAuthToken, obtainAuthToken} from "../network/helpers";
 const width = Dimensions.get('window').width;
 const height = Dimensions.get('window').height;
 
@@ -9,36 +20,46 @@ const height = Dimensions.get('window').height;
 export default class Login extends Component {
     constructor(props) {
         super(props);
-        this.state = {email: '', password: ''};
+        this.state = {email: '', password: '', lastError: ''};
     }
+
     componentDidMount() {
         AsyncStorage.getItem('loginEmail', (err, email) => {
-            if(email) {
+            if (email) {
                 this.setState({email});
             }
         });
+        AsyncStorage.getItem('lastError', (err, lastError) => {
+            if (lastError) {
+                this.setState({lastError});
+            }
+        });
     }
+
     focusNextField(nextField) {
         this.refs[nextField].focus();
     }
 
 
     submitAction() {
-        AsyncStorage.setItem('loginEmail',this.state.email);
-        obtainAuthToken(this.state.email, this.password)
+        AsyncStorage.setItem('loginEmail', this.state.email);
+        obtainAuthToken(this.state.email, this.state.password)
             .then(() => {
                 getAuthToken()
                     .then((info) => {
-                        alert(info);
+                        // alert(info);
                     })
             })
             .catch((problem) => {
-                ToastAndroid.show(problem, ToastAndroid.SHORT);
+                // ToastAndroid.show(JSON.stringify(problem), ToastAndroid.SHORT);
             });
 
     }
+
     render() {
         return (
+        <ScrollView>
+
             <View style={styles.container}>
                 <View style={[styles.field, styles.logoHolder]}>
                     <Image style={styles.logo} source={require('../public/images/logo.png')}/>
@@ -74,7 +95,15 @@ export default class Login extends Component {
                         </View>
                     </TouchableHighlight>
                 </View>
+                <View style={styles.bigField}>
+                    <Text>
+                        {this.state.lastError}
+                    </Text>
+                </View>
+
             </View>
+        </ScrollView>
+
         )
     }
 }
@@ -100,6 +129,10 @@ const styles = StyleSheet.create({
     field: {
         height: 70,
         padding: 8
+    },
+    bigField: {
+        height: 1500,
+        flexShrink: 0
     },
     textInput: {
         backgroundColor: 'white',

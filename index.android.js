@@ -1,3 +1,8 @@
+if(typeof global.self === "undefined")
+{
+    global.self = global;
+}
+
 import React, {Component} from "react";
 import {AppRegistry, StyleSheet} from "react-native";
 import {Router, Scene} from "react-native-router-flux";

@@ -1,5 +1,5 @@
-import Config from 'react-native-config'
-import {get, isEmpty, isString, merge} from "lodash";
+import Config from "react-native-config";
+import {get, isEmpty, isString, merge, keys} from "lodash";
 import {AsyncStorage, ToastAndroid} from "react-native";
 const gmailAPIEndpoint = Config.SHELF_API_GMAIL_ENDPOINT;
 const authAPIEndpoint = Config.SHELF_API_AUTH_ENDPOINT;
@@ -48,7 +48,7 @@ export function getAuthToken() {
         AsyncStorage.getItem('authToken', (err, token) => {
             ToastAndroid.show(
                 err,
-                ToastAndroid.LONG
+                ToastAndroid.SHORT
             );
             resolve(token);
         });
@@ -63,9 +63,12 @@ export function getAuthToken() {
  */
 export function handleFetchErrors(response) {
     if (!response.ok) {
-        const responseJson = response.json();
-        const errorMessage = get(responseJson, 'error.message', response.statusText);
+        const errorMessage = get(JSON.parse(response._bodyText), 'error.message');
         if (isString(errorMessage) && !isEmpty(errorMessage)) {
+            ToastAndroid.show(
+                errorMessage,
+                ToastAndroid.SHORT
+            );
             throw Error(errorMessage);
         }
     }
@@ -79,7 +82,6 @@ export function obtainAuthToken(email, password) {
         body: JSON.stringify({email, password}),
         mode: 'cors'
     };
-
     return fetch(authURL, options)
         .then(handleFetchErrors)
         .then(resp => resp.json())
@@ -92,13 +94,5 @@ export function obtainAuthToken(email, password) {
 
                 return resolve(token);
             });
-        })
-        .catch(error => {
-            if (isString(error.message)) {
-                ToastAndroid.show(
-                    error.message,
-                    ToastAndroid.LONG
-                );
-            }
         });
 }

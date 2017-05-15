@@ -12,6 +12,7 @@
     "react": "16.0.0-alpha.6",
     "react-native": "0.44.0",
     "react-native-config": "^0.4.2",
+    "react-native-linear-gradient": "^2.0.0",
     "react-native-router-flux": "^3.39.1"
   },
   "devDependencies": {

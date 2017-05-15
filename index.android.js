@@ -1,5 +1,4 @@
-if(typeof global.self === "undefined")
-{
+if(typeof global.self === "undefined"){
     global.self = global;
 }
 
@@ -9,13 +8,16 @@ import {Router, Scene} from "react-native-router-flux";
 
 
 import Login from "./app/pages/Login";
+import Splash from "./app/pages/Splash";
 
 export default class shelfnative extends Component {
     render() {
         return (
             <Router hideNavBar={true}>
                 <Scene key="root">
-                    <Scene key="login" component={Login} title="Login" initial={true}/>
+                    <Scene key="splash" component={Splash} title="Splash" initial={true}/>
+
+                    <Scene key="login" component={Login} title="Login"/>
                 </Scene>
             </Router>
         );

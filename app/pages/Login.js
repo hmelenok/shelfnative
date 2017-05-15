@@ -1,31 +1,61 @@
 import React, {Component} from "react";
-import {ToastAndroid, View, Text, StyleSheet, TextInput, TouchableHighlight, Dimensions, Image} from "react-native";
-import Meteor from "react-native-meteor";
-const width = Dimensions.get('window').width;
-const height = Dimensions.get('window').height;
+// import { Actions } from 'react-native-router-flux';
+import {
+    AsyncStorage,
+    Dimensions,
+    Image,
+    StyleSheet,
+    Text,
+    TextInput,
+    ToastAndroid,
+    TouchableHighlight,
+    View,
+    ScrollView
+} from "react-native";
+import {getAuthToken, obtainAuthToken} from "../network/helpers";
+const {width, height} = Dimensions.get('window');
 
-class Auth extends Component {
+
+export default class Login extends Component {
     constructor(props) {
         super(props);
         this.state = {email: '', password: ''};
     }
-    componentDidMount() {
-        console.log('Auth');
-    }
-    focusNextField(nextField) {
-        this.refs[nextField].focus();
-    }
 
-    submitAction() {
-        Meteor.loginWithPassword(this.state.email, this.state.password, (err) => {
-            if (err) {
-                ToastAndroid.showWithGravity(err.reason, ToastAndroid.SHORT, ToastAndroid.CENTER);
+    componentDidMount() {
+        AsyncStorage.getItem('loginEmail', (err, email) => {
+            if (email) {
+                this.setState({email});
             }
         });
     }
 
+    focusNextField(nextField) {
+        this.refs[nextField].focus();
+    }
+
+
+    submitAction() {
+        AsyncStorage.setItem('loginEmail', this.state.email);
+        obtainAuthToken(this.state.email, this.state.password)
+            .then((token) => {
+                getAuthToken()
+                    .then((info) => {
+                        if(info) {
+                            ToastAndroid.show(
+                                'Successfully logged in',
+                                ToastAndroid.SHORT
+                            );
+                        }
+                    })
+            });
+
+    }
+
     render() {
         return (
+        <ScrollView>
+
             <View style={styles.container}>
                 <View style={[styles.field, styles.logoHolder]}>
                     <Image style={styles.logo} source={require('../public/images/logo.png')}/>
@@ -62,9 +92,12 @@ class Auth extends Component {
                     </TouchableHighlight>
                 </View>
             </View>
+        </ScrollView>
+
         )
     }
 }
+
 const styles = StyleSheet.create({
     logoHolder: {
         backgroundColor: '#2A303B',
@@ -87,6 +120,10 @@ const styles = StyleSheet.create({
         height: 70,
         padding: 8
     },
+    bigField: {
+        height: 1500,
+        flexShrink: 0
+    },
     textInput: {
         backgroundColor: 'white',
         borderWidth: 1,
@@ -104,4 +141,3 @@ const styles = StyleSheet.create({
         fontFamily: 'notosans'
     }
 });
-module.exports = Auth;

@@ -4,34 +4,32 @@
   "private": true,
   "scripts": {
     "start": "node node_modules/react-native/local-cli/cli.js start",
-    "test": "jest",
-    "android": "react-native run-android",
-    "bundle-android": "react-native bundle --platform android --dev false --entry-file index.android.js --bundle-output android/app/src/main/assets/index.android.bundle --sourcemap-output android/app/src/main/assets/index.android.map --assets-dest android/app/src/main/res/",
-    "android-log": "react-native log-android",
-    "android-console": "adb shell input keyevent 82"
+    "test": "jest"
   },
   "dependencies": {
-    "react": "15.3.2",
-    "react-mixin": "^2.0.2",
-    "react-native": "0.35.0",
-    "react-native-meteor": "^1.0.1",
-    "react-native-router-flux": "^3.36.0",
-    "react-native-share-extension": "^1.0.3",
-    "react-native-side-menu": "^0.20.1",
-    "react-native-swipeout": "https://github.com/dancormier/react-native-swipeout.git",
-    "react-native-vector-icons": "^3.0.0",
-    "react-timer-mixin": "^0.13.3",
-    "uuid": "^2.0.3"
-  },
-  "jest": {
-    "preset": "jest-react-native"
+    "babel-preset-react-native-stage-0": "^1.0.1",
+    "lodash": "^4.17.4",
+    "react": "16.0.0-alpha.6",
+    "react-native": "0.44.0",
+    "react-native-config": "^0.4.2",
+    "react-native-linear-gradient": "^2.0.0",
+    "react-native-router-flux": "^3.39.1"
   },
   "devDependencies": {
-    "babel-jest": "16.0.0",
-    "babel-preset-react-native": "1.9.0",
-    "jest": "16.0.1",
-    "jest-react-native": "16.0.0",
-    "react-test-renderer": "15.3.2",
-    "babel-plugin-transform-decorators-legacy": "^1.3.4"
+    "babel-core": "^6.24.1",
+    "babel-jest": "20.0.1",
+    "babel-plugin-lodash": "^3.2.11",
+    "babel-plugin-transform-async-to-generator": "^6.24.1",
+    "babel-plugin-transform-inline-environment-variables": "0.0.2",
+    "babel-plugin-transform-object-rest-spread": "^6.23.0",
+    "babel-plugin-transform-runtime": "^6.23.0",
+    "babel-preset-es2015": "^6.24.1",
+    "babel-preset-react-native": "1.9.2",
+    "babel-runtime": "^6.23.0",
+    "jest": "20.0.1",
+    "react-test-renderer": "16.0.0-alpha.6"
+  },
+  "jest": {
+    "preset": "react-native"
   }
 }

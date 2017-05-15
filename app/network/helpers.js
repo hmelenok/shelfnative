@@ -1,6 +1,7 @@
-import Config from "react-native-config";
-import {get, isEmpty, isString, merge, keys} from "lodash";
-import {AsyncStorage, ToastAndroid} from "react-native";
+import Config from 'react-native-config';
+import {get, isEmpty, isString, merge, isObject} from 'lodash';
+import {AsyncStorage, ToastAndroid} from 'react-native';
+
 const gmailAPIEndpoint = Config.SHELF_API_GMAIL_ENDPOINT;
 const authAPIEndpoint = Config.SHELF_API_AUTH_ENDPOINT;
 const gemsAPIEndpoint = Config.SHELF_API_GEMS_ENDPOINT;
@@ -89,5 +90,51 @@ export function obtainAuthToken(email, password) {
                 }
                 return resolve(token);
             });
+        });
+}
+
+export function transformToQuery(params = {}) {
+    const searchKeys = Object.keys(params);
+    return !isEmpty(searchKeys) ? '?' + searchKeys
+            .map(key => !isEmpty(params[key]) ?
+                `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}` :
+                '')
+            .filter(keyVal => !isEmpty(keyVal))
+            .join('&') : '';
+}
+export function requestHatrack(params, hatrack) {
+    const initialQuery = transformToQuery(params);
+    const query = `${initialQuery}${isEmpty(initialQuery) ?
+        '?' :
+        '&'}hatrack=${encodeURIComponent(hatrack)}`;
+    return makeAuthorizedRequest(`${hatracksURL}${query}`)
+        .catch(problem => alert(problem));
+}
+
+export function requestHatracks(params = {}) {
+    const hatrackKeys = ['gemType', 'fileType', 'source', 'tag', 'badge', 'user'];
+    hatrackKeys.map(hatrack => requestHatrack(params, hatrack)
+        .then(json => {
+            AsyncStorage.getItem('hatrackData', (err, hatrackData) => {
+                if (isObject(hatrackData)) {
+                    AsyncStorage.setItem('hatrackData', JSON.stringify(merge(hatrackData, {[hatrack]: json})));
+                }
+            });
+
+        })
+        .catch(problem => alert(problem))
+    );
+}
+
+export function searchGems(params = {}) {
+    const query = transformToQuery(params);
+
+    requestHatracks(params);
+    return makeAuthorizedRequest(`${searchURL}${query}`)
+        .then(json => {
+            return json;
+        })
+        .catch(problem => {
+            alert(problem);
         });
 }

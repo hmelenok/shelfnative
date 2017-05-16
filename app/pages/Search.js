@@ -1,7 +1,9 @@
 import React, {Component} from 'react';
 // import { Actions } from 'react-native-router-flux';
-import {Dimensions, StyleSheet, Text, ToastAndroid, TouchableHighlight, View, Image, ScrollView} from 'react-native';
+import {Dimensions, Image, ScrollView, StyleSheet, Text, ToastAndroid, TouchableHighlight, View} from 'react-native';
 import {searchGems} from '../network/helpers';
+import {isObject, isString} from 'lodash';
+import moment from 'moment';
 
 const {width, height} = Dimensions.get('window');
 
@@ -19,7 +21,7 @@ export default class Search extends Component {
     search() {
         searchGems({})
             .then(response => {
-                if(response) {
+                if (response) {
                     const {results: {total, hits}} = response;
                     this.setState({results: hits});
                 } else {
@@ -32,14 +34,24 @@ export default class Search extends Component {
             })
     }
 
-    _renderRow() {
+    _renderRow(gem) {
+        const {_id, _source: {default_description, _highlight, previewSnippetImageURL, title, ownerUsername, createdAt}} = gem;
+        const description = isObject(_highlight) && isString(_highlight.description) ? _highlight.description : default_description || '';
         return (<View>
-            <View style={styles.row}>
-                {/*<Image style={styles.thumb} source={imgSource} />*/}
-                <Text style={styles.text}>
-                    1
-                </Text>
+            <View style={styles.row} key={_id}>
+                <View style={styles.thumb}>
+                    <Image style={styles.thumbImage} source={{uri: previewSnippetImageURL}}/>
+                </View>
+                <View style={styles.mainInfo}>
+                    <Text style={styles.title} numberOfLines={1}>{title}</Text>
+                    <Text style={styles.description} numberOfLines={2}>{description}</Text>
+                </View>
+                <View style={styles.secondaryInfo}>
+                    <Text style={styles.authorName}>{moment(createdAt).fromNow()}</Text>
+                    <Text style={styles.authorName}>{ownerUsername}</Text>
+                </View>
             </View>
+            {/*<Text>{JSON.stringify(gem, null, 4)}</Text>*/}
         </View>)
     }
 
@@ -63,15 +75,7 @@ export default class Search extends Component {
                     </View>
                 </TouchableHighlight>
                 <ScrollView>
-                    {this.state.results.map(({_id, _source, description}) => (
-                        <View style={styles.row} key={_id}>
-                            <Image style={styles.thumb} source={{uri: _source.previewSnippetImageURL}} />
-                            <View>
-                                <Text>{_source.title}</Text>
-                                <Text>{description}</Text>
-                            </View>
-                            <Text>{JSON.stringify(_source)}</Text>
-                        </View>))}
+                    {this.state.results.map((gem) => this._renderRow(gem))}
                 </ScrollView>
 
 
@@ -102,16 +106,52 @@ const styles = StyleSheet.create({
     },
     row: {
         flexDirection: 'row',
-        justifyContent: 'center',
-        padding: 10,
-        backgroundColor: '#F6F6F6',
+        alignItems: 'center',
+        backgroundColor: '#ffffff',
+        borderBottomWidth: 1,
+        borderBottomColor: '#f5f5f5',
+        maxWidth: width,
+        overflow: 'hidden',
+        padding: 0
     },
     thumb: {
+        width: 64,
+        height: 64,
+        backgroundColor: 'black'
+    },
+    thumbImage: {
         width: 64,
         height: 64,
     },
     text: {
         flex: 1,
     },
+    mainInfo: {
+        flexDirection: 'column',
+        paddingLeft: 10,
+        maxWidth: width - 144,
+        flexGrow: 1
+    },
+    title: {
+        color: '#2a303b',
+        fontSize: 14
+    },
+    description: {
+        color: '#818181',
+        fontSize: 12
+    },
+    secondaryInfo: {
+        flexGrow: 1,
+        flexShrink: 0,
+        justifyContent: 'flex-start',
+        alignItems: 'flex-end',
+        maxWidth: 80
+    },
+    authorName: {
+        textAlign: 'right',
+        fontSize: 10,
+        padding: 10,
+        color: '#818181'
+    }
 });
 

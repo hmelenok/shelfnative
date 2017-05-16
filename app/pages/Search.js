@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 // import { Actions } from 'react-native-router-flux';
-import {Dimensions, Image, ScrollView, StyleSheet, Text, ToastAndroid, TouchableHighlight, View} from 'react-native';
+import {Dimensions, Image, ScrollView, StyleSheet, Text, ToastAndroid, TouchableHighlight, View, TextInput} from 'react-native';
 import {searchGems} from '../network/helpers';
 import {isObject, isString} from 'lodash';
 import moment from 'moment';
@@ -11,15 +11,15 @@ const {width, height} = Dimensions.get('window');
 export default class Search extends Component {
     constructor(props) {
         super(props);
-        this.state = {results: []};
+        this.state = {results: [], searchTerm: ''};
     }
 
     componentDidMount() {
         this.search();
     }
 
-    search() {
-        searchGems({})
+    search(searchObject = {}) {
+        searchGems(searchObject)
             .then(response => {
                 if (response) {
                     const {results: {total, hits}} = response;
@@ -69,11 +69,17 @@ export default class Search extends Component {
     render() {
         return (
             <View style={styles.container}>
-                <TouchableHighlight style={styles.buttonHighlight} onPress={() => this.search()}>
-                    <View style={styles.button}>
-                        <Text style={styles.buttonLabel}>Search</Text>
-                    </View>
-                </TouchableHighlight>
+                <TextInput ref="searchField"
+                           style={styles.textInput}
+                           onChangeText={(searchTerm) => this.setState({searchTerm})}
+                           onSubmitEditing={() => this.search({query: this.state.searchTerm || ''})}
+                           value={this.state.searchTerm}
+                           />
+                {/*<TouchableHighlight style={styles.buttonHighlight} onPress={() => this.search()}>*/}
+                    {/*<View style={styles.button}>*/}
+                        {/*<Text style={styles.buttonLabel}>Search</Text>*/}
+                    {/*</View>*/}
+                {/*</TouchableHighlight>*/}
                 <ScrollView>
                     {this.state.results.map((gem) => this._renderRow(gem))}
                 </ScrollView>

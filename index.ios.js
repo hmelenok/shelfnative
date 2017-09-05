@@ -3,24 +3,26 @@
  * https://github.com/facebook/react-native
  * @flow
  */
-import {Provider} from 'react-redux';
-import React, { Component } from 'react';
-import {createStore, applyMiddleware, combineReducers, compose} from 'redux';
-import thunkMiddleware from 'redux-thunk';
-import createLogger from 'redux-logger';
+// import {Provider} from 'react-redux';
+import React, {Component} from 'react';
+// import {createStore, applyMiddleware, combineReducers, compose} from 'redux';
+// import thunkMiddleware from 'redux-thunk';
+// import createLogger from 'redux-logger';
 import Api from './app/lib/api';
-import {
-  AppRegistry,
-  StyleSheet,
-  Text,
-  View
-} from 'react-native';
+import {AppRegistry, StyleSheet, Text, View} from 'react-native';
 
 export default class shelfnative extends Component {
   render() {
     Api
       .logIn()
-      .then(console.log);
+      .then(({token}) => {
+
+        Api.hatracks(token, {query: '123', hatrack: 'gemType'})
+          .then((result) => {
+            console.log(result);
+          })
+          .catch(console.warn);
+      });
     return (
       <View style={styles.container}>
         <Text style={styles.welcome}>

@@ -1,3 +1,4 @@
+import {get, isEmpty} from 'lodash';
 class Api {
   static getApiUrl(apiID, stage, name, version = 'v1') {
     return `https://${apiID}.execute-api.us-east-1.amazonaws.com/${stage}/${version}/${name}`;
@@ -12,25 +13,34 @@ class Api {
     }
   }
 
-  static get (route = '') {
-    return this.xhr(route, null, 'GET');
+  static constructQuery(queryObject = {}) {
+    const keyTerms = Object.keys(queryObject);
+    if(!isEmpty(keyTerms)) {
+      return `?${keyTerms
+        .map(key => `${encodeURIComponent(key)}=${encodeURIComponent(get(queryObject, key, ''))}`).join('&')}`;
+    }
+    return '';
   }
 
-  static put(route = '', params) {
-    return this.xhr(route, params, 'PUT');
+  static get (route = '', params = null, additionalHeaders = {}) {
+    return this.xhr(route, params, 'GET', additionalHeaders);
   }
 
-  static post(route = '', params) {
-    return this.xhr(route, params, 'POST');
+  static put(route = '', params, additionalHeaders = {}) {
+    return this.xhr(route, params, 'PUT', additionalHeaders);
   }
 
-  static delete(route = '', params) {
-    return this.xhr(route, params, 'DELETE');
+  static post(route = '', params, additionalHeaders = {}) {
+    return this.xhr(route, params, 'POST', additionalHeaders);
   }
 
-  static xhr(url = '', params, verb) {
+  static delete(route = '', params, additionalHeaders = {}) {
+    return this.xhr(route, params, 'DELETE', additionalHeaders);
+  }
+
+  static xhr(url = '', params, verb, additionalHeaders = {}) {
     let options = Object.assign({method: verb}, params ? {body: JSON.stringify(params)} : null);
-    options.headers = Api.headers();
+    options.headers = Object.assign(Api.headers(), additionalHeaders);
 
     return fetch(url, options).then(resp => {
       let json = resp.json();
@@ -47,8 +57,30 @@ class Api {
     return this.getApiUrl('801h1479zl', 'staging', type);
   }
 
+  static getSearchRoute(type = 'gems', getParametersObject = {}) {
+    const queryString = this.constructQuery(getParametersObject);
+    console.log('queryString', queryString);
+    return this.getApiUrl('0yztfl09qi', 'staging', type) + (isEmpty(queryString) ? '': `/${queryString}`);
+  }
+
   static logIn(email = '', password = '') {
-    return this.post(this.getAuthRoute(), {email, password});
+    return this.post(this.getAuthRoute('auth'), {email, password});
+  }
+
+  static logOut(token) {
+    return this.post(this.getAuthRoute('revoke'), null, {'Authorization': token});
+  }
+
+  static user(token) {
+    return this.get(this.getAuthRoute('user'), null, {'Authorization': token});
+  }
+
+  static search(token, terms) {
+    return this.get(this.getSearchRoute('gems', terms), null, {'Authorization': token});
+  }
+
+  static hatracks(token, termsWithHatrack) {
+    return this.get(this.getSearchRoute('hatracks', termsWithHatrack), null, {'Authorization': token});
   }
 }
 

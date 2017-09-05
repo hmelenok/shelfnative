@@ -59,7 +59,6 @@ class Api {
 
   static getSearchRoute(type = 'gems', getParametersObject = {}) {
     const queryString = this.constructQuery(getParametersObject);
-    console.log('queryString', queryString);
     return this.getApiUrl('0yztfl09qi', 'staging', type) + (isEmpty(queryString) ? '': `/${queryString}`);
   }
 

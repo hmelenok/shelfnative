@@ -2,30 +2,35 @@ import React, {Component} from 'react';
 import {Image, ScrollView, StyleSheet, Text, TouchableHighlight, View, TextInput} from 'react-native';
 import {connect} from 'react-redux';
 import {get} from 'lodash';
+import { Actions } from 'react-native-router-flux';
+
+
 
 class Home extends Component {
   constructor(props) {
     super(props);
     this.state = {
       searching: false,
-      ingredientsInput: ''
-    }
+      searchInput: ''
+    };
+    console.log(props);
   }
   searchPressed() {
     this.setState({
       searching: true
     });
-    this.props.fetchRecipes(this.state.ingredientsInput)
+    this.props.fetchGems(this.state.searchInput)
       .then(() => {
         this.setState({
           searching: false
         });
+        Actions.everything();
       });
   }
 
-  recipes() {
-    return Object.keys(this.props.searchedRecipes)
-      .map(key => this.props.searchedRecipes[key]);
+  gems() {
+    return Object.keys(this.props.searchedGems)
+      .map(key => this.props.searchedGems[key]);
   }
 
   render() {
@@ -34,8 +39,8 @@ class Home extends Component {
         <TextInput style={styles.searchInput}
                    returnKeyType="search"
                    placeholder="Search terms"
-                   onChangeText={ (ingredientsInput) => this.setState({ingredientsInput})}
-                   value={this.state.ingredientsInput}
+                   onChangeText={ (searchInput) => this.setState({searchInput})}
+                   value={this.state.searchInput}
         />
         <TouchableHighlight onPress={() => {
           this.searchPressed();
@@ -46,7 +51,7 @@ class Home extends Component {
         </TouchableHighlight>
       </View>
       <ScrollView style={styles.scrollSection}>
-        {!this.state.searching && this.recipes().map((recipe) => {
+        {!this.state.searching && this.gems().map((recipe) => {
           return <View key={recipe._id}>
             <Image source={{uri: get(recipe, '_source.previewSnippetImageURL', 'https://static.shelf.io/images/backgrounds/card-background.png')}} style={styles.resultImage}/>
             <Text style={styles.resultText}>
@@ -62,7 +67,7 @@ class Home extends Component {
 
 function mapStateToProps(state) {
   return {
-    searchedRecipes: state.searchedRecipes
+    searchedGems: state.searchedGems
   }
 }
 

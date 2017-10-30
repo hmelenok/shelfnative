@@ -1,3 +1,3 @@
-export const SET_SEARCHED_RECIPES = 'SET_SEARCHED_RECIPES';
+export const SET_SEARCHED_GEMS = 'SET_SEARCHED_GEMS';
 
-export const ADD_RECIPE = 'ADD_RECIPE';
+export const ADD_GEM = 'ADD_GEM';

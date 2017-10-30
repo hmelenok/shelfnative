@@ -1,4 +1,4 @@
-import * as RecipeActions from './recipes';
+import * as GemActions from './gems';
 export const ActionCreators = Object.assign({},
-  RecipeActions,
+  GemActions,
   );

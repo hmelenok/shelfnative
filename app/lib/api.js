@@ -1,7 +1,14 @@
 import {get, isEmpty} from 'lodash';
+
 class Api {
-  static getApiUrl(apiID, stage, name, version = 'v1') {
-    return `https://${apiID}.execute-api.us-east-1.amazonaws.com/${stage}/${version}/${name}`;
+  static getApiUrl(apiType, stage = 'staging', route, version = 'v1') {
+    const staging = 'api.gsstaging.net';
+    const hosts = {
+      staging,
+      'production': 'api.shelf.io'
+    };
+
+    return `https://${get(hosts, stage, staging)}/${apiType}/${version}/${route}`;
   }
 
   static headers() {
@@ -15,14 +22,14 @@ class Api {
 
   static constructQuery(queryObject = {}) {
     const keyTerms = Object.keys(queryObject);
-    if(!isEmpty(keyTerms)) {
+    if (!isEmpty(keyTerms)) {
       return `?${keyTerms
         .map(key => `${encodeURIComponent(key)}=${encodeURIComponent(get(queryObject, key, ''))}`).join('&')}`;
     }
     return '';
   }
 
-  static get (route = '', params = null, additionalHeaders = {}) {
+  static get(route = '', params = null, additionalHeaders = {}) {
     return this.xhr(route, params, 'GET', additionalHeaders);
   }
 
@@ -54,12 +61,12 @@ class Api {
   }
 
   static getAuthRoute(type = 'auth') {
-    return this.getApiUrl('801h1479zl', 'staging', type);
+    return this.getApiUrl('auth', 'staging', type);
   }
 
   static getSearchRoute(type = 'gems', getParametersObject = {}) {
     const queryString = this.constructQuery(getParametersObject);
-    return this.getApiUrl('0yztfl09qi', 'staging', type) + (isEmpty(queryString) ? '': `/${queryString}`);
+    return this.getApiUrl('search', 'staging',type) + (isEmpty(queryString) ? '' : `/${queryString}`);
   }
 
   static logIn(email = '', password = '') {
